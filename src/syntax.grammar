@@ -1,26 +1,152 @@
-@top Program { expression* }
+@precedence { first @left, last @left, only @left}
 
-@skip { space | LineComment }
+@top Tree { (namespaceSection | includeSection | importSection)? FeaturesSection ConstraintsSection? }
 
-expression {
-  Identifier |
-  String |
-  Boolean |
-  Application { "(" expression* ")" }
+namespaceSection { "namespace" identifier lineEnd }
+
+
+importSection { "imports" lineEnd ImportBlock}
+ImportFeature { ImportName ("."  Specifier)+}
+ImportName { (identifier | string) }
+Specifier { (identifier | string) }
+ImportBlock { indent (((Feature | ImportFeature) ("as" Feature)?) lineEnd)+  (dedent | eof) }
+
+
+includeSection { "include" lineEnd IncludeBlock}
+IncludeBlock { indent (include ("." (identifier | "*"))? lineEnd)+  (dedent | eof) }
+include {
+  "Boolean" |
+  "Arithmetic" |
+  "Type"
+}
+
+
+FeaturesSection { Root lineEnd FeatureBlock }
+Root { "features" }
+
+
+StateFeature { !last ExtendedFeature lineEnd StateBlock }
+StateBlock { indent  (State lineEnd FeatureBlock)+ (dedent | eof) }
+State{
+  ("mandatory"
+   | "optional"
+   | "alternative"
+   | "or"
+   | Counter)
+}
+
+
+ExtendedFeature {!first Type? (Feature | ImportFeature) ReqExp? Cardinality? AttributeItem? }
+Feature { (identifier | string) }
+FeatureBlock { indent (ExtendedFeature lineEnd | StateFeature)+  (dedent | eof) }
+ReqExp { !last (identifier | string) }
+
+
+Cardinality {!last "cardinality" "[" Min ".." Max "]"}
+Counter { !first "[" Min ".." Max "]" }
+Min {unsignedInteger}
+Max {unsignedInteger}
+
+
+AttributeItem {!first "{" list<AttributeSelection> "}"}
+AttributeSelection { Key Value? }
+Key { identifier | string | "'" identifier "'" }
+Value { integer | unsignedInteger | string  | boolean | ("-"? real) | AttributeItem | identifier}
+list<item> { item ("," item)* }
+
+
+
+ConstraintsSection { "constraints" lineEnd ConstraintsBlock+ }
+ConstraintsBlock {indent (Constraints lineEnd)+ (dedent | eof)}
+
+ConstraintSign { "|" | "=>" | "&" | "==" | "<=>" | "!="}
+ConstraintsItem { BooleanNeg? ((identifier | string | id ) | ImportFeature) | BracketItem }
+
+BracketItem { OpenBracket ConstraintsItem CloseBracket }
+Brackets { !first OpenBracket Constraints CloseBracket }
+
+
+BooleanNeg { "!" }
+OpenBracket { "(" }
+CloseBracket { ")" }
+
+Number { integer | unsignedInteger | numericTerm }
+numericTerm { OpenBracket Number NumericOperator Number CloseBracket }
+
+Constraints {
+  (!last Operation (Signs) Number (ConstraintSign ConstraintsItem)?) |
+  (!first ConstraintsItem ConstraintSign ConstraintsItem) |
+  (!last ConstraintsItem ConstraintSign Constraints) |
+  (!first Constraints ConstraintSign (ConstraintsItem | Constraints | (integer | unsignedInteger)) ) |
+  (!first (Constraints | ConstraintsItem) SymbolicOperator Number) |
+  (!last ConstraintsItem SymbolicOperator ConstraintsItem Signs ConstraintsItem) |
+  (!last ConstraintsItem ConstraintSign (integer | unsignedInteger) ) |
+  (!last (ConstraintsItem | Constraints) NumericOperator (ConstraintsItem | Constraints) ) |
+  (!only ConstraintsItem) |
+  (!last (ConstraintsItem | Constraints) SymbolicOperator ConstraintsItem) |
+  (BooleanNeg? Brackets)
+}
+
+Operation {!first (sum | avg | lenExpr)}
+lenExpr {"len" "(" Key ")" }
+sum {"sum" "(" Key ")"}
+avg { "avg" "(" Key ")"}
+
+SymbolicOperator { ">" | "<"}
+NumericOperator { "+" | "-" | "*" | "/" }
+Signs { "<" | ">" | "==" | "=<" | "<=" }
+
+
+@skip {
+  spaces |
+  Comment |
+  blankLineStart (spaces | Comment)* lineEnd
+}
+
+lineEnd { newline | eof }
+
+
+@context trackIndent from "./tokens.js"
+
+//!externalTokens
+@external tokens indentation from "./tokens.js" {
+  indent
+  dedent
+  blankLineStart
 }
 
 @tokens {
-  Identifier { $[a-zA-Z_\-0-9]+ }
+  @precedence {
 
-  String { '"' (!["\\] | "\\" _)* '"' }
-
-  Boolean { "#t" | "#f" }
-
-  LineComment { ";" ![\n]* }
-
-  space { $[ \t\n\r]+ }
-
-  "(" ")"
+    "cardinality",
+    "avg",
+    "len",
+    "sum",
+    integer,
+    "-",
+    Type,
+    boolean,
+    unsignedInteger,
+    real,
+    id,
+    string,
+    identifier
+  }
+  spaces { $[ \t]+ }
+  newline { "\n" }
+  eof { @eof }
+  Comment { "#" ![\n]+ }
+  string {
+    "\"" (!["\\] | "\\" _)*
+    "\"" |
+    "'" (!['\\] | "\\" _)*
+    "'"
+  }
+  identifier { ("-"? $[a-zA-Z0-9_])+ }
+  id { "'" "-"? $[0-9]+ "'" }
+  unsignedInteger { $[0-9]+ }
+  integer { "-" unsignedInteger }
+  real { $[0-9]+ "." $[0-9]+}
+  boolean { "true" | "false" }
+  Type { "Integer" | "String" | "Real" | "Boolean"}
 }
-
-@detectDelim
