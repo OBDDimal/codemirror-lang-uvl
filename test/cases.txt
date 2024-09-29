@@ -209,7 +209,7 @@ constraints
 
 ==>
 
-Tree [tree="fresh"](
+Tree(
   ImportBlock (
     Feature
   )

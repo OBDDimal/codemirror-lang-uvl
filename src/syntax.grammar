@@ -2,16 +2,17 @@
 
 @top Tree { (namespaceSection | includeSection | importSection)? FeaturesSection ConstraintsSection? }
 
+//! pre-feature sections
 namespaceSection { "namespace" identifier lineEnd }
 
-
+//! importing Features from outside the file
 importSection { "imports" lineEnd ImportBlock}
 ImportFeature { ImportName ("."  Specifier)+}
 ImportName { (identifier | string) }
 Specifier { (identifier | string) }
 ImportBlock { indent (((Feature | ImportFeature) ("as" Feature)?) lineEnd)+  (dedent | eof) }
 
-
+//! including levels
 includeSection { "include" lineEnd IncludeBlock}
 IncludeBlock { indent (include ("." (identifier | "*"))? lineEnd)+  (dedent | eof) }
 include {
@@ -20,11 +21,11 @@ include {
   "Type"
 }
 
-
+//! feature section
 FeaturesSection { Root lineEnd FeatureBlock }
 Root { "features" }
 
-
+//! state features
 StateFeature { !last ExtendedFeature lineEnd StateBlock }
 StateBlock { indent  (State lineEnd FeatureBlock)+ (dedent | eof) }
 State{
@@ -35,19 +36,21 @@ State{
    | Counter)
 }
 
-
+//! feature base
 ExtendedFeature {!first Type? (Feature | ImportFeature) ReqExp? Cardinality? AttributeItem? }
 Feature { (identifier | string) }
 FeatureBlock { indent (ExtendedFeature lineEnd | StateFeature)+  (dedent | eof) }
 ReqExp { !last (identifier | string) }
 
 
+
+//! Min Max
 Cardinality {!last "cardinality" "[" Min ".." Max "]"}
 Counter { !first "[" Min ".." Max "]" }
 Min {unsignedInteger}
 Max {unsignedInteger}
 
-
+//! list
 AttributeItem {!first "{" list<AttributeSelection> "}"}
 AttributeSelection { Key Value? }
 Key { identifier | string | "'" identifier "'" }
@@ -56,6 +59,7 @@ list<item> { item ("," item)* }
 
 
 
+//!constraints section
 ConstraintsSection { "constraints" lineEnd ConstraintsBlock+ }
 ConstraintsBlock {indent (Constraints lineEnd)+ (dedent | eof)}
 
@@ -87,6 +91,7 @@ Constraints {
   (BooleanNeg? Brackets)
 }
 
+//! functions
 Operation {!first (sum | avg | lenExpr)}
 lenExpr {"len" "(" Key ")" }
 sum {"sum" "(" Key ")"}
@@ -97,15 +102,17 @@ NumericOperator { "+" | "-" | "*" | "/" }
 Signs { "<" | ">" | "==" | "=<" | "<=" }
 
 
+//!skip
 @skip {
   spaces |
   Comment |
   blankLineStart (spaces | Comment)* lineEnd
 }
 
+//!lineEnd
 lineEnd { newline | eof }
 
-
+//!context
 @context trackIndent from "./tokens.js"
 
 //!externalTokens
@@ -114,7 +121,7 @@ lineEnd { newline | eof }
   dedent
   blankLineStart
 }
-
+//!tokens
 @tokens {
   @precedence {
 
