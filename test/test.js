@@ -1,6 +1,5 @@
-import { UVLLanguage } from '../dist/index.js'; // Importiere UVLLanguage
+import { UVLLanguage } from '../dist/index.js';
 import * as fs from 'fs';
-import { readdirSync, readFileSync } from 'fs';
 import * as path from 'path';
 import assert from 'assert';
 import { fileURLToPath } from 'url';
