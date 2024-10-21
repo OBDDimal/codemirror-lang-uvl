@@ -1,7 +1,7 @@
 //!trackIndent
 
 import {ContextTracker} from "@lezer/lr"
-import {indent, dedent} from "./parser.terms.mjs"
+import {indent, dedent} from "./parser.terms.js"
 
 class IndentLevel {
     constructor(parent, depth) {
@@ -24,7 +24,7 @@ export const trackIndent = new ContextTracker({
 //!indentation
 
 import {ExternalTokenizer} from "@lezer/lr"
-import {blankLineStart} from "./parser.terms.mjs"
+import {blankLineStart} from "./parser.terms.js"
 
 const newline = 10, space = 32, tab = 9, hash = 35
 
