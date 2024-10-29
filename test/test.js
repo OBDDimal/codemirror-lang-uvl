@@ -1,4 +1,3 @@
-/*
 import { UVLLanguage } from '../dist/index.js';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -61,7 +60,8 @@ describe('Parser Tests', () => {
     });
   });
 });
- */
+/*
+//chai approach
 import { UVLLanguage } from '../dist/index.js';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -124,3 +124,4 @@ describe('Parser Tests', () => {
     });
   });
 });
+ */
