@@ -24,6 +24,7 @@
   },
   "devDependencies": {
     "@lezer/generator": "^1.0.0",
+    "chai": "^5.1.2",
     "mocha": "^9.0.1",
     "rollup": "4.22.4",
     "rollup-plugin-dts": "^6.1.1",
